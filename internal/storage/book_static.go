@@ -9,17 +9,17 @@ import (
 	"github.com/aaron-zeisler/library-api/internal"
 )
 
-type staticBookStorage struct {
+type staticBooksStorage struct {
 	books map[string]internal.Book
 }
 
-func NewStaticBookStorage() *staticBookStorage {
-	return &staticBookStorage{
+func NewStaticBooksStorage() *staticBooksStorage {
+	return &staticBooksStorage{
 		books: staticBooksData,
 	}
 }
 
-func (s *staticBookStorage) GetBooks(ctx context.Context) ([]internal.Book, error) {
+func (s *staticBooksStorage) GetBooks(ctx context.Context) ([]internal.Book, error) {
 	result := make([]internal.Book, 0, len(s.books))
 	for _, book := range s.books {
 		result = append(result, book)
@@ -27,7 +27,7 @@ func (s *staticBookStorage) GetBooks(ctx context.Context) ([]internal.Book, erro
 	return result, nil
 }
 
-func (s *staticBookStorage) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
+func (s *staticBooksStorage) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
 	book, ok := s.books[bookID]
 	if !ok {
 		return internal.Book{}, fmt.Errorf("The book with ID '%s' was not found", bookID)
@@ -35,7 +35,7 @@ func (s *staticBookStorage) GetBookByID(ctx context.Context, bookID string) (int
 	return book, nil
 }
 
-func (s *staticBookStorage) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {
+func (s *staticBooksStorage) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {
 	newBookID := uuid.New().String()
 	newBook := internal.Book{
 		ID:          newBookID,
@@ -50,7 +50,7 @@ func (s *staticBookStorage) CreateBook(ctx context.Context, title, author, isbn,
 	return newBook, nil
 }
 
-func (s *staticBookStorage) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
+func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
 	_, ok := s.books[bookID]
 	if !ok {
 		return internal.Book{}, fmt.Errorf("The book with ID '%s' was not found", bookID)
@@ -67,7 +67,7 @@ func (s *staticBookStorage) UpdateBook(ctx context.Context, bookID, title, autho
 
 }
 
-func (s *staticBookStorage) DeleteBook(ctx context.Context, bookID string) error {
+func (s *staticBooksStorage) DeleteBook(ctx context.Context, bookID string) error {
 	_, ok := s.books[bookID]
 	if ok {
 		delete(s.books, bookID)

@@ -17,7 +17,7 @@ func TestNewStaticBookStorage(t *testing.T) {
 	type state struct {
 	}
 	type expected struct {
-		result staticBookStorage
+		result staticBooksStorage
 	}
 	testCases := map[string]struct {
 		state
@@ -26,7 +26,7 @@ func TestNewStaticBookStorage(t *testing.T) {
 		"Happy path is the only path": {
 			state{},
 			expected{
-				result: staticBookStorage{books: staticBooksData},
+				result: staticBooksStorage{books: staticBooksData},
 			},
 		},
 	}
@@ -35,7 +35,7 @@ func TestNewStaticBookStorage(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			result := NewStaticBookStorage()
+			result := NewStaticBooksStorage()
 
 			assert.So(len(result.books), should.Equal, len(tc.expected.result.books))
 			for id, book := range tc.expected.result.books {
@@ -84,7 +84,7 @@ func Test_staticBookStorage_GetBooks(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			s := staticBookStorage{
+			s := staticBooksStorage{
 				books: tc.state.books,
 			}
 
@@ -142,7 +142,7 @@ func Test_staticBookStorage_GetBookByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			s := staticBookStorage{
+			s := staticBooksStorage{
 				books: tc.state.books,
 			}
 
@@ -195,7 +195,7 @@ func Test_staticBookStorage_CreateBook(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			s := staticBookStorage{
+			s := staticBooksStorage{
 				books: tc.state.books,
 			}
 
@@ -286,7 +286,7 @@ func Test_staticBookStorage_UpdateBook(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			s := staticBookStorage{
+			s := staticBooksStorage{
 				books: tc.state.books,
 			}
 
@@ -359,7 +359,7 @@ func Test_staticBookStorage_DeleteBook(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assertions.New(t)
 
-			s := staticBookStorage{
+			s := staticBooksStorage{
 				books: tc.state.books,
 			}
 
