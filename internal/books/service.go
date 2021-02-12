@@ -38,7 +38,8 @@ func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyReq
 		s.logger.WithError(err).Error("failed to retrieve books from the database")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-		}, fmt.Errorf("failed to retrieve books from the database: %w", err)
+			Body:       fmt.Errorf("failed to retrieve books from the database: %w", err).Error(),
+		}, nil
 	}
 
 	responseBody, err := json.Marshal(books)
@@ -46,7 +47,8 @@ func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyReq
 		s.logger.WithError(err).Error("failed to encode the books into an http response")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-		}, fmt.Errorf("failed to encode the books into an http response: %w", err)
+			Body:       fmt.Errorf("failed to encode the books into an http response: %w", err).Error(),
+		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -55,7 +57,6 @@ func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyReq
 	}, nil
 }
 
-//func (s service) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
 func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	bookID := request.PathParameters["book_id"]
 
@@ -64,7 +65,8 @@ func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxy
 		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to retrieve the book from the database")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-		}, fmt.Errorf("failed to retrieve the book with ID '%s' from the database: %w", bookID, err)
+			Body:       fmt.Errorf("failed to retrieve a book from the database: %w", err).Error(),
+		}, nil
 	}
 
 	responseBody, err := json.Marshal(book)
@@ -72,7 +74,8 @@ func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxy
 		s.logger.WithError(err).Error("failed to encode the book into an http response")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-		}, fmt.Errorf("failed to encode the book into an http response: %w", err)
+			Body:       fmt.Errorf("failed to encode the book into an http response: %w", err).Error(),
+		}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
