@@ -30,6 +30,18 @@ Resources:
           Properties:
             Path: /book/{book_id}
             Method: get
+  CreateBookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/create-book
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book
+            Method: post
 
 Outputs:
   Endpoint:

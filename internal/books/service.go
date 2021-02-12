@@ -84,10 +84,39 @@ func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxy
 	}, nil
 }
 
-//func (s service) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {
 func (s service) CreateBook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//return s.db.CreateBook(ctx, title, author, isbn, description)
-	return events.APIGatewayProxyResponse{}, nil
+	var book internal.Book
+	err := json.Unmarshal([]byte(request.Body), &book)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to decode the request body into a book object")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Errorf("failed to decode the request body into a book object: %w", err).Error(),
+		}, nil
+	}
+
+	newBook, err := s.db.CreateBook(ctx, book.Title, book.Author, book.ISBN, book.Description)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to create a new book in the database")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Errorf("failed to create a new book in the database: %w", err).Error(),
+		}, nil
+	}
+
+	responseBody, err := json.Marshal(newBook)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to encode the book into an http response")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Errorf("failed to encode the book into an http response: %w", err).Error(),
+		}, nil
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(responseBody),
+	}, nil
 }
 
 //func (s service) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
