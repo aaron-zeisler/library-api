@@ -1,6 +1,11 @@
 LAMBDA_SOURCE_DIR = ./lambdas
 OUTPUT_DIR = dist
 LAMBDA_OUTPUT_DIR := $(OUTPUT_DIR)/lambdas
+AWS_TEMPLATE_FILE = template.yaml
+AWS_PACKAGE_OUTPUT_FILE = packaged.yaml
+AWS_REGION = us-west-1
+S3_BUCKET = library-api-lambdas
+CLOUDFORMATION_STACK_NAME = library-api-lambdas
 
 
 .PHONY: test
@@ -21,6 +26,7 @@ clean:
 	@go clean ./...
 	@rm -rf $(OUTPUT_DIR)
 	@mkdir -p $(OUTPUT_DIR)
+	@rm $(AWS_PACKAGE_OUTPUT_FILE)
 
 
 .PHONY: tidy
@@ -31,3 +37,13 @@ tidy:
 .PHONY: api
 api: build
 	@sam local start-api
+
+
+.PHONY: package
+package: build
+	@sam package --template-file $(AWS_TEMPLATE_FILE) --s3-bucket $(S3_BUCKET) --region $(AWS_REGION) --output-template-file $(AWS_PACKAGE_OUTPUT_FILE)
+
+
+.PHONY: deploy
+deploy: package
+	@sam deploy --template-file $(AWS_PACKAGE_OUTPUT_FILE) --stack-name $(CLOUDFORMATION_STACK_NAME) --capabilities CAPABILITY_IAM --region $(AWS_REGION)
