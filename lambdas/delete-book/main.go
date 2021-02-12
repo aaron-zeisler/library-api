@@ -12,7 +12,7 @@ func main() {
 	db := storage.NewStaticBooksStorage()
 	logger := logrus.New()
 
-	service := books.NewService(db, logger)
+	service := books.NewService(db, books.WithLogger(logger))
 
 	lambda.Start(service.DeleteBook)
 }

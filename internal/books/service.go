@@ -25,10 +25,25 @@ type booksDB interface {
 	DeleteBook(ctx context.Context, bookID string) error
 }
 
-func NewService(db booksDB, logger *logrus.Logger) service {
-	return service{
+func NewService(db booksDB, opts ...ServiceOption) service {
+	s := service{
 		db:     db,
-		logger: logger,
+		logger: logrus.New(),
+	}
+
+	for _, opt := range opts {
+		s = opt(s)
+	}
+
+	return s
+}
+
+type ServiceOption func(s service) service
+
+func WithLogger(logger *logrus.Logger) ServiceOption {
+	return func(s service) service {
+		s.logger = logger
+		return s
 	}
 }
 
