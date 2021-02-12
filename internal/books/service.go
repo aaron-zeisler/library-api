@@ -134,10 +134,10 @@ func (s service) UpdateBook(ctx context.Context, request events.APIGatewayProxyR
 
 	updatedBook, err := s.db.UpdateBook(ctx, bookID, book.Title, book.Author, book.ISBN, book.Description)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to update the new book in the database")
+		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to update the book in the database")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to update the new book in the database: %w", err).Error(),
+			Body:       fmt.Errorf("failed to update the book in the database: %w", err).Error(),
 		}, nil
 	}
 
@@ -156,8 +156,19 @@ func (s service) UpdateBook(ctx context.Context, request events.APIGatewayProxyR
 	}, nil
 }
 
-//func (s service) DeleteBook(ctx context.Context, bookID string) error {
 func (s service) DeleteBook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//return s.db.DeleteBook(ctx, bookID)
-	return events.APIGatewayProxyResponse{}, nil
+	bookID := request.PathParameters["book_id"]
+
+	err := s.db.DeleteBook(ctx, bookID)
+	if err != nil {
+		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to delete the book from the database")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+			Body:       fmt.Errorf("failed to delete the book from the database: %w", err).Error(),
+		}, nil
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+	}, nil
 }

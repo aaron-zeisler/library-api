@@ -54,6 +54,18 @@ Resources:
           Properties:
             Path: /book/{book_id}
             Method: put
+  DeleteBookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/delete-book
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book/{book_id}
+            Method: delete
 
 Outputs:
   Endpoint:
