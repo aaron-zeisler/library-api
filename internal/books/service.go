@@ -57,8 +57,28 @@ func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyReq
 
 //func (s service) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
 func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//return s.db.GetBookByID(ctx, bookID)
-	return events.APIGatewayProxyResponse{}, nil
+	bookID := request.PathParameters["book_id"]
+
+	book, err := s.db.GetBookByID(ctx, bookID)
+	if err != nil {
+		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to retrieve the book from the database")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("failed to retrieve the book with ID '%s' from the database: %w", bookID, err)
+	}
+
+	responseBody, err := json.Marshal(book)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to encode the book into an http response")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("failed to encode the book into an http response: %w", err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(responseBody),
+	}, nil
 }
 
 //func (s service) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {

@@ -18,6 +18,18 @@ Resources:
           Properties:
             Path: /books
             Method: get
+  GetBookByIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/get-book-by-id
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book/{book_id}
+            Method: get
 
 Outputs:
   Endpoint:

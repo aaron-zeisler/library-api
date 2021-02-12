@@ -14,5 +14,5 @@ func main() {
 
 	service := books.NewService(db, logger)
 
-	lambda.Start(service.GetBooks)
+	lambda.Start(service.GetBookByID)
 }
