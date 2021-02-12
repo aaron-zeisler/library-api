@@ -42,6 +42,18 @@ Resources:
           Properties:
             Path: /book
             Method: post
+  UpdateBookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/update-book
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book/{book_id}
+            Method: put
 
 Outputs:
   Endpoint:
