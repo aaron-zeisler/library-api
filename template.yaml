@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  library-api
+
+  A REST API for a library management service
+
+Resources:
+  GetBooksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/get-books
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /books
+            Method: get
+
+Outputs:
+  Endpoint:
+    Value:  !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"

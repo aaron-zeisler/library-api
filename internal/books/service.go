@@ -2,12 +2,19 @@ package books
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/sirupsen/logrus"
 
 	"github.com/aaron-zeisler/library-api/internal"
 )
 
 type service struct {
-	db booksDB
+	db     booksDB
+	logger *logrus.Logger
 }
 
 type booksDB interface {
@@ -18,28 +25,56 @@ type booksDB interface {
 	DeleteBook(ctx context.Context, bookID string) error
 }
 
-func NewService(ctx context.Context, db booksDB) service {
+func NewService(db booksDB, logger *logrus.Logger) service {
 	return service{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
 }
 
-func (s service) GetBooks(ctx context.Context) ([]internal.Book, error) {
-	return s.db.GetBooks(ctx)
+func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	books, err := s.db.GetBooks(ctx)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to retrieve books from the database")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("failed to retrieve books from the database: %w", err)
+	}
+
+	responseBody, err := json.Marshal(books)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to encode the books into an http response")
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("failed to encode the books into an http response: %w", err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(responseBody),
+	}, nil
 }
 
-func (s service) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
-	return s.db.GetBookByID(ctx, bookID)
+//func (s service) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
+func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//return s.db.GetBookByID(ctx, bookID)
+	return events.APIGatewayProxyResponse{}, nil
 }
 
-func (s service) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {
-	return s.db.CreateBook(ctx, title, author, isbn, description)
+//func (s service) CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error) {
+func (s service) CreateBook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//return s.db.CreateBook(ctx, title, author, isbn, description)
+	return events.APIGatewayProxyResponse{}, nil
 }
 
-func (s service) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
-	return s.db.UpdateBook(ctx, bookID, title, author, isbn, description)
+//func (s service) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
+func (s service) UpdateBook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//return s.db.UpdateBook(ctx, bookID, title, author, isbn, description)
+	return events.APIGatewayProxyResponse{}, nil
 }
 
-func (s service) DeleteBook(ctx context.Context, bookID string) error {
-	return s.db.DeleteBook(ctx, bookID)
+//func (s service) DeleteBook(ctx context.Context, bookID string) error {
+func (s service) DeleteBook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//return s.db.DeleteBook(ctx, bookID)
+	return events.APIGatewayProxyResponse{}, nil
 }

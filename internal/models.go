@@ -1,9 +1,9 @@
 package internal
 
 type Book struct {
-	ID          string
-	Title       string
-	Author      string
-	ISBN        string
-	Description string
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	ISBN        string `json:"isbn"`
+	Description string `json:"description"`
 }
