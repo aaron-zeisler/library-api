@@ -10,7 +10,7 @@ CLOUDFORMATION_STACK_NAME = library-api-lambdas
 
 .PHONY: test
 test:
-	@go test ./... -race -count=1 -cover
+	@go test -race -count=1 -cover $$(go list ./... | grep -Ev 'mocks')
 
 
 .PHONY: build
@@ -26,12 +26,22 @@ clean:
 	@go clean ./...
 	@rm -rf $(OUTPUT_DIR)
 	@mkdir -p $(OUTPUT_DIR)
-	@rm $(AWS_PACKAGE_OUTPUT_FILE)
+	@rm -f $(AWS_PACKAGE_OUTPUT_FILE)
 
 
 .PHONY: tidy
 tidy:
 	@go mod tidy
+
+
+.PHONY: mocks
+mocks:
+	@counterfeiter -o ./internal/books/mocks/mock_books_db.go --fake-name MockBooksDB ./internal/books booksDB
+
+
+.PHONY: tools
+tools:
+	@go list -f '{{ join .Imports "\n" }}' -tags tools ./internal/tools | xargs go install
 
 
 .PHONY: api

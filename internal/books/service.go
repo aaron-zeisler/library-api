@@ -3,6 +3,7 @@ package books
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -50,20 +51,12 @@ func WithLogger(logger *logrus.Logger) ServiceOption {
 func (s service) GetBooks(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	books, err := s.db.GetBooks(ctx)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to retrieve books from the database")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to retrieve books from the database: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to retrieve books from the database", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	responseBody, err := json.Marshal(books)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to encode the books into an http response")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to encode the books into an http response: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to encode the books into an http response", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -77,20 +70,17 @@ func (s service) GetBookByID(ctx context.Context, request events.APIGatewayProxy
 
 	book, err := s.db.GetBookByID(ctx, bookID)
 	if err != nil {
-		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to retrieve the book from the database")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to retrieve a book from the database: %w", err).Error(),
-		}, nil
+		statusCode := http.StatusInternalServerError
+		if errors.As(err, &internal.ErrBookNotFound{}) {
+			statusCode = http.StatusNotFound
+		}
+
+		return s.logAndReturnError(err, "failed to retrieve the book from the database", statusCode, logrus.Fields{"book_id": bookID})
 	}
 
 	responseBody, err := json.Marshal(book)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to encode the book into an http response")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to encode the book into an http response: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to encode the book into an http response", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -103,29 +93,17 @@ func (s service) CreateBook(ctx context.Context, request events.APIGatewayProxyR
 	var book internal.Book
 	err := json.Unmarshal([]byte(request.Body), &book)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to decode the request body into a book object")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to decode the request body into a book object: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to decode the request body into a book object", http.StatusBadRequest, logrus.Fields{})
 	}
 
 	newBook, err := s.db.CreateBook(ctx, book.Title, book.Author, book.ISBN, book.Description)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to create a new book in the database")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to create a new book in the database: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to create a new book in the database", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	responseBody, err := json.Marshal(newBook)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to encode the book into an http response")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to encode the book into an http response: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to encode the book into an http response", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -140,29 +118,22 @@ func (s service) UpdateBook(ctx context.Context, request events.APIGatewayProxyR
 	var book internal.Book
 	err := json.Unmarshal([]byte(request.Body), &book)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to decode the request body into a book object")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to decode the request body into a book object: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to decode the request body into a book object", http.StatusBadRequest, logrus.Fields{})
 	}
 
 	updatedBook, err := s.db.UpdateBook(ctx, bookID, book.Title, book.Author, book.ISBN, book.Description)
 	if err != nil {
-		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to update the book in the database")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to update the book in the database: %w", err).Error(),
-		}, nil
+		statusCode := http.StatusInternalServerError
+		if errors.As(err, &internal.ErrBookNotFound{}) {
+			statusCode = http.StatusNotFound
+		}
+
+		return s.logAndReturnError(err, "failed to update the book in the database", statusCode, logrus.Fields{"book_id": bookID})
 	}
 
 	responseBody, err := json.Marshal(updatedBook)
 	if err != nil {
-		s.logger.WithError(err).Error("failed to encode the book into an http response")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to encode the book into an http response: %w", err).Error(),
-		}, nil
+		return s.logAndReturnError(err, "failed to encode the book into an http response", http.StatusInternalServerError, logrus.Fields{})
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -175,15 +146,25 @@ func (s service) DeleteBook(ctx context.Context, request events.APIGatewayProxyR
 	bookID := request.PathParameters["book_id"]
 
 	err := s.db.DeleteBook(ctx, bookID)
-	if err != nil {
-		s.logger.WithError(err).WithField("book_id", bookID).Error("failed to delete the book from the database")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       fmt.Errorf("failed to delete the book from the database: %w", err).Error(),
-		}, nil
+	if err != nil && !errors.As(err, &internal.ErrBookNotFound{}) { // 'Book not found' doesn't cause a 404 for the DELETE action
+		return s.logAndReturnError(err, "failed to delete the book from the database", http.StatusInternalServerError, logrus.Fields{"book_id": bookID})
 	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 	}, nil
+}
+
+func (s service) logAndReturnError(err error, message string, statusCode int, logFields logrus.Fields) (events.APIGatewayProxyResponse, error) {
+	s.logger.WithError(err).WithFields(logFields).Error(message)
+	return events.APIGatewayProxyResponse{
+		StatusCode: statusCode,
+		Body:       formatErrorForResponseBody(fmt.Errorf("%s: %w", message, err)),
+	}, nil
+}
+
+func formatErrorForResponseBody(err error) string {
+	//TODO: Use a struct to represent the error
+	//TODO: Allow this service to support Content-Type other than JSON
+	return fmt.Sprintf(`{"error":"%s"}`, err.Error())
 }

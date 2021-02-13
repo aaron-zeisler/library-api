@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 
@@ -30,7 +29,7 @@ func (s *staticBooksStorage) GetBooks(ctx context.Context) ([]internal.Book, err
 func (s *staticBooksStorage) GetBookByID(ctx context.Context, bookID string) (internal.Book, error) {
 	book, ok := s.books[bookID]
 	if !ok {
-		return internal.Book{}, fmt.Errorf("The book with ID '%s' was not found", bookID)
+		return internal.Book{}, internal.ErrBookNotFound{BookID: bookID}
 	}
 	return book, nil
 }
@@ -53,7 +52,7 @@ func (s *staticBooksStorage) CreateBook(ctx context.Context, title, author, isbn
 func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
 	_, ok := s.books[bookID]
 	if !ok {
-		return internal.Book{}, fmt.Errorf("The book with ID '%s' was not found", bookID)
+		return internal.Book{}, internal.ErrBookNotFound{BookID: bookID}
 	}
 
 	s.books[bookID] = internal.Book{
@@ -69,9 +68,11 @@ func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID, title, auth
 
 func (s *staticBooksStorage) DeleteBook(ctx context.Context, bookID string) error {
 	_, ok := s.books[bookID]
-	if ok {
-		delete(s.books, bookID)
+	if !ok {
+		return internal.ErrBookNotFound{BookID: bookID}
 	}
+
+	delete(s.books, bookID)
 
 	return nil
 }

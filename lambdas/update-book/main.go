@@ -10,7 +10,11 @@ import (
 
 func main() {
 	db := storage.NewStaticBooksStorage()
+
+	//TODO: Read these log settings from environment variables
 	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(logrus.DebugLevel)
 
 	service := books.NewService(db, books.WithLogger(logger))
 

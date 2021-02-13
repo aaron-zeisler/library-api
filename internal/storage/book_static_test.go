@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -133,7 +132,7 @@ func Test_staticBookStorage_GetBookByID(t *testing.T) {
 			},
 			expected{
 				result: internal.Book{},
-				err:    errors.New("The book with ID '7' was not found"),
+				err:    internal.ErrBookNotFound{BookID: "7"},
 			},
 		},
 	}
@@ -277,7 +276,7 @@ func Test_staticBookStorage_UpdateBook(t *testing.T) {
 			},
 			expected{
 				result: internal.Book{},
-				err:    errors.New("The book with ID '448E55A3-E88E-4597-B3CB-11A844EFDA5D' was not found"),
+				err:    internal.ErrBookNotFound{BookID: "448E55A3-E88E-4597-B3CB-11A844EFDA5D"},
 			},
 		},
 	}
@@ -336,7 +335,7 @@ func Test_staticBookStorage_DeleteBook(t *testing.T) {
 				numBooks: 0,
 			},
 		},
-		"An unknown book id doesn't return an error, but also doesn't alter the books collection": {
+		"An unknown book id returns an error": {
 			state{
 				books: map[string]internal.Book{
 					"6B94AEF7-ABEC-483E-82CB-2B6E2B801997": {
@@ -350,6 +349,7 @@ func Test_staticBookStorage_DeleteBook(t *testing.T) {
 				bookID: "11112222-3333-4444-5555-666677778888",
 			},
 			expected{
+				err:      internal.ErrBookNotFound{BookID: "11112222-3333-4444-5555-666677778888"},
 				numBooks: 1,
 			},
 		},
