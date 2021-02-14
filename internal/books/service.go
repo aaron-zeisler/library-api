@@ -168,3 +168,7 @@ func formatErrorForResponseBody(err error) string {
 	//TODO: Allow this service to support Content-Type other than JSON
 	return fmt.Sprintf(`{"error":"%s"}`, err.Error())
 }
+
+type errorResponse struct {
+	ErrorMessage string `json:"error"`
+}
