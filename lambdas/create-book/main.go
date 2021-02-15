@@ -6,6 +6,7 @@ import (
 
 	"github.com/aaron-zeisler/library-api/internal/books"
 	"github.com/aaron-zeisler/library-api/internal/storage"
+	"github.com/aaron-zeisler/library-api/lambdas"
 )
 
 func main() {
@@ -18,5 +19,5 @@ func main() {
 
 	service := books.NewService(db, books.WithLogger(logger))
 
-	lambda.Start(service.CreateBook)
+	lambda.Start(lambdas.CORSWrapper(service.CreateBook))
 }
