@@ -19,6 +19,7 @@ build: clean
 	@for dir in `ls $(LAMBDA_SOURCE_DIR)`; do \
 		GOOS=linux go build -o $(LAMBDA_OUTPUT_DIR)/$$dir $(LAMBDA_SOURCE_DIR)/$$dir; \
 	done
+	@rm $(LAMBDA_OUTPUT_DIR)/*.go
 
 
 .PHONY: clean
