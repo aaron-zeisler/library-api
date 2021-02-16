@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	db := storage.NewStaticBooksStorage()
+	db := storage.NewDynamoDBBooksStorage()
 
 	//TODO: Read these log settings from environment variables
 	logger := logrus.New()
