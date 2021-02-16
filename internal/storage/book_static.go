@@ -49,7 +49,7 @@ func (s *staticBooksStorage) CreateBook(ctx context.Context, title, author, isbn
 	return newBook, nil
 }
 
-func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
+func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID string, book internal.Book) (internal.Book, error) {
 	_, ok := s.books[bookID]
 	if !ok {
 		return internal.Book{}, internal.ErrBookNotFound{BookID: bookID}
@@ -57,10 +57,11 @@ func (s *staticBooksStorage) UpdateBook(ctx context.Context, bookID, title, auth
 
 	s.books[bookID] = internal.Book{
 		ID:          bookID,
-		Title:       title,
-		Author:      author,
-		ISBN:        isbn,
-		Description: description,
+		Title:       book.Title,
+		Author:      book.Author,
+		ISBN:        book.ISBN,
+		Description: book.Description,
+		Status:      book.Status,
 	}
 	return s.books[bookID], nil
 

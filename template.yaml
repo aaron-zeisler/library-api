@@ -66,6 +66,30 @@ Resources:
           Properties:
             Path: /book/{book_id}
             Method: delete
+  CheckOutBookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/check-out-book
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book/{book_id}/check-out
+            Method: post
+  CheckInBookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/lambdas/check-in-book
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            Path: /book/{book_id}/check-in
+            Method: post
 
 Outputs:
   Endpoint:

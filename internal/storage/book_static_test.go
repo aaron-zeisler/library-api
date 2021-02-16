@@ -289,7 +289,7 @@ func Test_staticBookStorage_UpdateBook(t *testing.T) {
 				books: tc.state.books,
 			}
 
-			result, err := s.UpdateBook(context.Background(), tc.state.bookID, tc.state.title, tc.state.author, tc.state.isbn, tc.state.description)
+			result, err := s.UpdateBook(context.Background(), tc.state.bookID, internal.Book{ID: tc.state.bookID, Title: tc.state.title, Author: tc.state.author, ISBN: tc.state.isbn, Description: tc.state.description})
 
 			// Verify the properties of the book object that was returned
 			assert.So(result, should.Resemble, tc.expected.result)

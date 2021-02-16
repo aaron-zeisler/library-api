@@ -22,7 +22,7 @@ type booksDB interface {
 	GetBooks(ctx context.Context) ([]internal.Book, error)
 	GetBookByID(ctx context.Context, bookID string) (internal.Book, error)
 	CreateBook(ctx context.Context, title, author, isbn, description string) (internal.Book, error)
-	UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error)
+	UpdateBook(ctx context.Context, bookID string, book internal.Book) (internal.Book, error)
 	DeleteBook(ctx context.Context, bookID string) error
 }
 
@@ -121,7 +121,7 @@ func (s service) UpdateBook(ctx context.Context, request events.APIGatewayProxyR
 		return s.logAndReturnError(err, "failed to decode the request body into a book object", http.StatusBadRequest, logrus.Fields{})
 	}
 
-	updatedBook, err := s.db.UpdateBook(ctx, bookID, book.Title, book.Author, book.ISBN, book.Description)
+	updatedBook, err := s.db.UpdateBook(ctx, bookID, book)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		if errors.As(err, &internal.ErrBookNotFound{}) {
@@ -152,6 +152,53 @@ func (s service) DeleteBook(ctx context.Context, request events.APIGatewayProxyR
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
+	}, nil
+}
+
+func (s service) CheckOut(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return s.updateStatus(ctx, request, internal.CheckedOut)
+}
+
+func (s service) CheckIn(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return s.updateStatus(ctx, request, internal.CheckedIn)
+}
+
+func (s service) updateStatus(ctx context.Context, request events.APIGatewayProxyRequest, newStatus internal.BookStatus) (events.APIGatewayProxyResponse, error) {
+	bookID := request.PathParameters["book_id"]
+
+	// Retrieve the book
+	book, err := s.db.GetBookByID(ctx, bookID)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if errors.As(err, &internal.ErrBookNotFound{}) {
+			statusCode = http.StatusNotFound
+		}
+
+		return s.logAndReturnError(err, "failed to retrieve the book from the database", statusCode, logrus.Fields{"book_id": bookID})
+	}
+
+	// Set the book's new stsatus
+	book.Status = newStatus
+
+	// And save it
+	updatedBook, err := s.db.UpdateBook(ctx, bookID, book)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if errors.As(err, &internal.ErrBookNotFound{}) {
+			statusCode = http.StatusNotFound
+		}
+
+		return s.logAndReturnError(err, "failed to update the book in the database", statusCode, logrus.Fields{"book_id": bookID})
+	}
+
+	responseBody, err := json.Marshal(updatedBook)
+	if err != nil {
+		return s.logAndReturnError(err, "failed to encode the book into an http response", http.StatusInternalServerError, logrus.Fields{})
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(responseBody),
 	}, nil
 }
 

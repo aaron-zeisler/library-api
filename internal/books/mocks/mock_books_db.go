@@ -65,15 +65,12 @@ type MockBooksDB struct {
 		result1 []internal.Book
 		result2 error
 	}
-	UpdateBookStub        func(context.Context, string, string, string, string, string) (internal.Book, error)
+	UpdateBookStub        func(context.Context, string, internal.Book) (internal.Book, error)
 	updateBookMutex       sync.RWMutex
 	updateBookArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 string
-		arg4 string
-		arg5 string
-		arg6 string
+		arg3 internal.Book
 	}
 	updateBookReturns struct {
 		result1 internal.Book
@@ -346,23 +343,20 @@ func (fake *MockBooksDB) GetBooksReturnsOnCall(i int, result1 []internal.Book, r
 	}{result1, result2}
 }
 
-func (fake *MockBooksDB) UpdateBook(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) (internal.Book, error) {
+func (fake *MockBooksDB) UpdateBook(arg1 context.Context, arg2 string, arg3 internal.Book) (internal.Book, error) {
 	fake.updateBookMutex.Lock()
 	ret, specificReturn := fake.updateBookReturnsOnCall[len(fake.updateBookArgsForCall)]
 	fake.updateBookArgsForCall = append(fake.updateBookArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 string
-		arg4 string
-		arg5 string
-		arg6 string
-	}{arg1, arg2, arg3, arg4, arg5, arg6})
+		arg3 internal.Book
+	}{arg1, arg2, arg3})
 	stub := fake.UpdateBookStub
 	fakeReturns := fake.updateBookReturns
-	fake.recordInvocation("UpdateBook", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
+	fake.recordInvocation("UpdateBook", []interface{}{arg1, arg2, arg3})
 	fake.updateBookMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -376,17 +370,17 @@ func (fake *MockBooksDB) UpdateBookCallCount() int {
 	return len(fake.updateBookArgsForCall)
 }
 
-func (fake *MockBooksDB) UpdateBookCalls(stub func(context.Context, string, string, string, string, string) (internal.Book, error)) {
+func (fake *MockBooksDB) UpdateBookCalls(stub func(context.Context, string, internal.Book) (internal.Book, error)) {
 	fake.updateBookMutex.Lock()
 	defer fake.updateBookMutex.Unlock()
 	fake.UpdateBookStub = stub
 }
 
-func (fake *MockBooksDB) UpdateBookArgsForCall(i int) (context.Context, string, string, string, string, string) {
+func (fake *MockBooksDB) UpdateBookArgsForCall(i int) (context.Context, string, internal.Book) {
 	fake.updateBookMutex.RLock()
 	defer fake.updateBookMutex.RUnlock()
 	argsForCall := fake.updateBookArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *MockBooksDB) UpdateBookReturns(result1 internal.Book, result2 error) {

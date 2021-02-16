@@ -101,6 +101,7 @@ func (s *dynamodbBooksStorage) CreateBook(ctx context.Context, title, author, is
 		Title:       title,
 		Author:      author,
 		Description: description,
+		Status:      internal.CheckedIn,
 	}
 	item, err := dynamodbattribute.MarshalMap(newBook)
 	if err != nil {
@@ -118,7 +119,7 @@ func (s *dynamodbBooksStorage) CreateBook(ctx context.Context, title, author, is
 	return newBook, nil
 }
 
-func (s *dynamodbBooksStorage) UpdateBook(ctx context.Context, bookID, title, author, isbn, description string) (internal.Book, error) {
+func (s *dynamodbBooksStorage) UpdateBook(ctx context.Context, bookID string, book internal.Book) (internal.Book, error) {
 	result := internal.Book{}
 
 	// Attempt to retrieve the book to verify that it exists before updating
@@ -132,18 +133,20 @@ func (s *dynamodbBooksStorage) UpdateBook(ctx context.Context, bookID, title, au
 		return result, fmt.Errorf("failed to marshal the bookID into a dynamo key: %w", err)
 	}
 
-	book := struct {
+	bookUpdates := struct {
 		Title       string `json:":t"`
 		Author      string `json:":a"`
 		ISBN        string `json:":i"`
 		Description string `json:":d"`
+		Status      string `json:":s"`
 	}{
-		Title:       title,
-		Author:      author,
-		ISBN:        isbn,
-		Description: description,
+		Title:       book.Title,
+		Author:      book.Author,
+		ISBN:        book.ISBN,
+		Description: book.Description,
+		Status:      string(book.Status),
 	}
-	updates, err := dynamodbattribute.MarshalMap(book)
+	updates, err := dynamodbattribute.MarshalMap(bookUpdates)
 	if err != nil {
 		return result, fmt.Errorf("failed to marshal the bookID into a dynamo key: %w", err)
 	}
@@ -151,7 +154,7 @@ func (s *dynamodbBooksStorage) UpdateBook(ctx context.Context, bookID, title, au
 	dbResult, err := s.db.UpdateItemWithContext(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 aws.String(s.tableName),
 		Key:                       key,
-		UpdateExpression:          aws.String("SET isbn=:i, title=:t, author=:a, description=:d"),
+		UpdateExpression:          aws.String("SET isbn=:i, title=:t, author=:a, description=:d, book_status=:s"),
 		ExpressionAttributeValues: updates,
 		ReturnValues:              aws.String("ALL_NEW"),
 	})
